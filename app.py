@@ -63,6 +63,10 @@ class Room:
             for user_id, user in self.users.items()
         ]
     
+    def get_user_nicknames(self):
+        """Get list of user nicknames"""
+        return [user['nickname'] for user in self.users.values()]
+    
     def to_dict(self):
         """Convert room to dict"""
         return {
@@ -137,6 +141,8 @@ def create_room():
     room_id = str(uuid.uuid4())
     room = Room(room_id, name)
     rooms_data[room_id] = room
+    
+    print(f"Room created: {room_id} - {name}")
     
     return jsonify({
         'id': room_id,
@@ -213,7 +219,7 @@ def handle_disconnect():
                 # Notify others
                 socketio.emit('user_left', {
                     'userId': user_id,
-                    'users': room.get_users()
+                    'users': room.get_user_nicknames()
                 }, room=room_id)
                 
                 # Delete room if empty
@@ -229,23 +235,25 @@ def handle_join_room(data):
     """
     Handle user joining room
     """
-    room_id = data.get('roomId')
+    room_id = data.get('room_id') or data.get('roomId')
     nickname = data.get('nickname', '').strip()
     sid = request.sid
     
+    print(f"Join room request: room_id={room_id}, nickname={nickname}, sid={sid}")
+    
     if not room_id or not nickname:
-        emit('error', {'message': 'Room ID and nickname are required'})
+        emit('error', {'error': 'Room ID and nickname are required'})
         return
     
     room = rooms_data.get(room_id)
     
     if not room:
-        emit('error', {'message': 'Room not found'})
+        emit('error', {'error': 'Room not found'})
         return
     
     # Check if nickname already exists
     if room.has_nickname(nickname):
-        emit('error', {'message': 'Nickname already taken in this room'})
+        emit('error', {'error': 'Nickname already taken in this room'})
         return
     
     # Add user to room
@@ -253,7 +261,7 @@ def handle_join_room(data):
     peer_id = str(uuid.uuid4())
     
     if not room.add_user(user_id, nickname, sid, peer_id):
-        emit('error', {'message': 'Could not join room'})
+        emit('error', {'error': 'Could not join room'})
         return
     
     # Join SocketIO room
@@ -265,7 +273,7 @@ def handle_join_room(data):
         'roomId': room_id,
         'userId': user_id,
         'peerId': peer_id,
-        'users': room.get_users()
+        'users': room.get_user_nicknames()
     })
     
     # Notify others about new user
@@ -273,7 +281,7 @@ def handle_join_room(data):
         'userId': user_id,
         'nickname': nickname,
         'peerId': peer_id,
-        'users': room.get_users()
+        'users': room.get_user_nicknames()
     }, room=room_id, skip_sid=sid)
     
     print(f'User {nickname} joined room {room_id}')
@@ -284,7 +292,7 @@ def handle_leave_room(data):
     """
     Handle user leaving room
     """
-    room_id = data.get('roomId')
+    room_id = data.get('room_id') or data.get('roomId')
     sid = request.sid
     
     room = rooms_data.get(room_id)
@@ -294,9 +302,11 @@ def handle_leave_room(data):
     
     # Find and remove user
     user_id = None
+    nickname = None
     for uid, user in room.users.items():
         if user['sid'] == sid:
             user_id = uid
+            nickname = user['nickname']
             break
     
     if user_id:
@@ -306,7 +316,8 @@ def handle_leave_room(data):
         # Notify others
         socketio.emit('user_left', {
             'userId': user_id,
-            'users': room.get_users()
+            'nickname': nickname,
+            'users': room.get_user_nicknames()
         }, room=room_id)
         
         # Delete room if empty
@@ -316,6 +327,8 @@ def handle_leave_room(data):
         
         if sid in user_rooms:
             del user_rooms[sid]
+        
+        print(f'User {nickname} left room {room_id}')
 
 
 @socketio.on('chat_message')
@@ -323,11 +336,11 @@ def handle_chat_message(data):
     """
     Handle chat message
     """
-    room_id = data.get('roomId')
-    text = data.get('text', '').strip()
+    room_id = data.get('room_id') or data.get('roomId')
+    message = data.get('message') or data.get('text', '').strip()
     sid = request.sid
     
-    if not room_id or not text or sid not in user_rooms:
+    if not room_id or not message or sid not in user_rooms:
         return
     
     room = rooms_data.get(room_id)
@@ -350,93 +363,20 @@ def handle_chat_message(data):
     socketio.emit('chat_message', {
         'userId': user_id,
         'nickname': nickname,
-        'text': text,
+        'message': message,
         'timestamp': datetime.now().isoformat()
     }, room=room_id)
 
 
-@socketio.on('offer')
-def handle_offer(data):
+@socketio.on('user_status_changed')
+def handle_user_status_changed(data):
     """
-    Handle WebRTC offer
+    Handle user status change (video/audio)
     """
-    room_id = data.get('roomId')
-    target_user_id = data.get('targetUserId')
-    offer = data.get('offer')
-    sid = request.sid
+    room_id = data.get('room_id') or data.get('roomId')
     
-    room = rooms_data.get(room_id)
-    if not room:
-        return
-    
-    # Find target user's sid
-    target_sid = None
-    for uid, user in room.users.items():
-        if uid == target_user_id:
-            target_sid = user['sid']
-            break
-    
-    if target_sid:
-        socketio.emit('offer', {
-            'from': None,  # Will be determined on client side
-            'offer': offer
-        }, room=target_sid)
-
-
-@socketio.on('answer')
-def handle_answer(data):
-    """
-    Handle WebRTC answer
-    """
-    room_id = data.get('roomId')
-    target_user_id = data.get('targetUserId')
-    answer = data.get('answer')
-    sid = request.sid
-    
-    room = rooms_data.get(room_id)
-    if not room:
-        return
-    
-    # Find target user's sid
-    target_sid = None
-    for uid, user in room.users.items():
-        if uid == target_user_id:
-            target_sid = user['sid']
-            break
-    
-    if target_sid:
-        socketio.emit('answer', {
-            'from': None,  # Will be determined on client side
-            'answer': answer
-        }, room=target_sid)
-
-
-@socketio.on('ice_candidate')
-def handle_ice_candidate(data):
-    """
-    Handle ICE candidate
-    """
-    room_id = data.get('roomId')
-    target_user_id = data.get('targetUserId')
-    candidate = data.get('candidate')
-    sid = request.sid
-    
-    room = rooms_data.get(room_id)
-    if not room:
-        return
-    
-    # Find target user's sid
-    target_sid = None
-    for uid, user in room.users.items():
-        if uid == target_user_id:
-            target_sid = user['sid']
-            break
-    
-    if target_sid:
-        socketio.emit('ice_candidate', {
-            'from': None,  # Will be determined on client side
-            'candidate': candidate
-        }, room=target_sid)
+    if room_id:
+        socketio.emit('user_status_changed', data, room=room_id)
 
 
 # Serve frontend
