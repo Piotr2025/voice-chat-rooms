@@ -1,66 +1,52 @@
+# Voice Chat Rooms - Python Flask Version 🎤
 
-# 1. Zainstaluj zależności serwera
-npm install
+A real-time voice and text chat application built with **Python/Flask**, **Flask-SocketIO**, **Bootstrap**, and **Alpine.js**.
 
-# 2. Zainstaluj zależności klienta
-cd client && npm install && cd ..
+## ✨ Features
 
-# Terminal 1 - Serwer
-npm start
+- 🎤 **No authentication required** - Join instantly with just a nickname
+- 📞 **WebRTC voice & video calls** - P2P connections for crystal clear audio and video
+- 💬 **Real-time chat** - WebSocket-based messaging with all room participants
+- 🎮 **Dynamic room management** - Create or join chat rooms instantly
+- 👥 **Live user list** - Auto-updates when people join/leave
+- 📋 **Swagger API documentation** - Full API docs at `/apidocs`
+- 🎨 **Modern UI** - Bootstrap + Alpine.js frontend
+- 🐳 **Docker support** - Easy deployment
 
-# Terminal 2 - Klient
-npm run client
-# Voice Chat Rooms 🎤
-
-A real-time voice and text chat application built with React, Node.js, WebRTC, and WebSocket.
-
-## Features
-
-✨ **No Authentication Required** - Join instantly with just a nickname
-
-🎬 **Voice & Video Calls** - WebRTC peer-to-peer connections for crystal clear audio and video
-
-💬 **Real-time Chat** - WebSocket-based messaging with all room participants
-
-👥 **Room Management** - Create or join chat rooms
-
-🚪 **Dynamic Room Updates** - User list updates automatically when people join/leave
-
-🔄 **Auto Room Cleanup** - Rooms automatically close when the last person leaves
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 voice-chat-rooms/
-├── server.js                 # Express server with WebSocket
-├── package.json             # Server dependencies
-├── client/                  # React frontend
-│   ├── public/
-│   │   ├── index.html
-│   │   └── manifest.json
-│   ├── src/
-│   │   ├── index.js
-│   │   ├── index.css
-│   │   ├── App.js
-│   │   ├── App.css
-│   │   ├── pages/
-│   │   │   ├── Lobby.js     # Room listing and creation
-│   │   │   └── Room.js      # Video/chat room interface
-│   │   ├── styles/
-│   │   │   ├── Lobby.css
-│   │   │   └── Room.css
-│   │   └── utils/
-│   │       ├── websocket.js # WebSocket client manager
-│   │       └── webrtc.js    # WebRTC peer connection manager
-│   └── package.json         # Client dependencies
+├── app.py                    # Flask app with SocketIO
+├── requirements.txt          # Python dependencies
+├── Dockerfile               # Docker configuration
+├── templates/
+│   ├── index.html          # Lobby page
+│   └── room.html           # Chat room page
+├── static/
+│   ├── css/
+│   │   ├── style.css       # Lobby styles
+│   │   └── room.css        # Room styles
+│   └── js/
+│       ├── lobby.js        # Lobby logic
+│       ├── room.js         # Room logic
+│       └── webrtc.js       # WebRTC manager
 └── README.md
 ```
 
-## Installation
+## 📦 Tech Stack
+
+- **Backend**: Python 3.8+, Flask, Flask-SocketIO
+- **Frontend**: HTML5, Bootstrap 5, Alpine.js
+- **Real-time Communication**: WebSocket (SocketIO), WebRTC
+- **Server**: WSGI (Gunicorn with Eventlet)
+- **API Documentation**: Swagger/Flasgger
+
+## 🚀 Installation
 
 ### Prerequisites
-- Node.js 14+
-- npm or yarn
+- Python 3.8+
+- pip
 
 ### Setup
 
@@ -70,83 +56,81 @@ voice-chat-rooms/
    cd voice-chat-rooms
    ```
 
-2. **Install server dependencies**
+2. **Create virtual environment**
    ```bash
-   npm install
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # or
+   venv\Scripts\activate  # Windows
    ```
 
-3. **Install client dependencies**
+3. **Install dependencies**
    ```bash
-   cd client
-   npm install
-   cd ..
+   pip install -r requirements.txt
    ```
 
-## Running the Application
+## 🎮 Running the Application
 
 ### Development Mode
-
-**Terminal 1 - Start the server:**
 ```bash
-npm start
+python app.py
 ```
-Server will run on `http://localhost:3001`
+The application will be available at `http://localhost:5000`
 
-**Terminal 2 - Start the React development server:**
+### Production Mode with Gunicorn
 ```bash
-npm run client
+gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:5000 app:app
 ```
-Client will run on `http://localhost:3000`
 
-### Production Mode
+### Docker
+```bash
+# Build image
+docker build -t voice-chat-rooms .
 
-1. **Build the React app**
-   ```bash
-   npm run build
-   ```
+# Run container
+docker run -p 5000:5000 voice-chat-rooms
+```
 
-2. **Start the server**
-   ```bash
-   npm start
-   ```
-
-The application will be available at `http://localhost:3001`
-
-## Usage
+## 💡 Usage
 
 ### Create a Room
-1. Click "Create New Room" on the lobby page
-2. Enter a room name and your nickname
-3. Click "Create & Join"
+1. Go to `http://localhost:5000`
+2. Click "Create New Room"
+3. Enter room name and your nickname
+4. Click "Create & Join"
 
 ### Join an Existing Room
-1. Find a room in the list on the lobby page
+1. Find a room in the list
 2. Click "Join Room"
 3. Enter your nickname
-4. Click "Join Room" to enter
+4. Click "Join Room"
 
 ### In the Room
-- **Video/Audio**: Your video stream is automatically shared with all room participants
-- **Mute/Unmute**: Click the microphone button to toggle audio
-- **Chat**: Send text messages using the chat box on the right
-- **User List**: See who's currently in the room
-- **Leave**: Click "Leave Room" to exit and return to the lobby
+- 📹 **Video/Audio**: Automatically shared with all participants
+- 🔊 **Mute/Unmute**: Click the microphone button in your video
+- 💬 **Chat**: Send text messages using the chat box
+- 👥 **User List**: See who's currently in the room
+- 🚪 **Leave**: Close the browser tab or click "Leave Room"
 
-## API Reference
+## 📡 API Reference
 
 ### REST Endpoints
 
 #### GET /api/rooms
-Get a list of all available rooms
+Get all available rooms
+
+```bash
+curl http://localhost:5000/api/rooms
+```
 
 **Response:**
 ```json
 [
   {
-    "id": "room-uuid",
+    "id": "uuid",
     "name": "Room Name",
     "userCount": 2,
-    "createdAt": "2024-01-01T12:00:00Z"
+    "createdAt": "2024-01-01T12:00:00"
   }
 ]
 ```
@@ -154,39 +138,42 @@ Get a list of all available rooms
 #### POST /api/rooms
 Create a new room
 
-**Request:**
-```json
-{
-  "name": "Room Name"
-}
+```bash
+curl -X POST http://localhost:5000/api/rooms \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My Room"}'
 ```
 
 **Response:**
 ```json
 {
-  "id": "room-uuid",
-  "name": "Room Name",
+  "id": "uuid",
+  "name": "My Room",
   "message": "Room created successfully"
 }
 ```
 
-#### GET /api/rooms/:roomId
+#### GET /api/rooms/<room_id>
 Get room details
+
+```bash
+curl http://localhost:5000/api/rooms/uuid
+```
 
 **Response:**
 ```json
 {
-  "id": "room-uuid",
+  "id": "uuid",
   "name": "Room Name",
   "users": [
     {
-      "userId": "user-uuid",
+      "userId": "uuid",
       "nickname": "John",
-      "peerId": "peer-uuid"
+      "peerId": "uuid"
     }
   ],
   "userCount": 1,
-  "createdAt": "2024-01-01T12:00:00Z"
+  "createdAt": "2024-01-01T12:00:00"
 }
 ```
 
@@ -195,153 +182,124 @@ Get room details
 #### Client → Server
 
 **join_room**
-```json
-{
-  "type": "join_room",
-  "roomId": "room-uuid",
-  "nickname": "John"
-}
+```javascript
+socket.emit('join_room', {
+  roomId: 'room-uuid',
+  nickname: 'John'
+})
 ```
 
 **leave_room**
-```json
-{
-  "type": "leave_room",
-  "roomId": "room-uuid"
-}
+```javascript
+socket.emit('leave_room', {
+  roomId: 'room-uuid'
+})
 ```
 
 **chat_message**
-```json
-{
-  "type": "chat_message",
-  "roomId": "room-uuid",
-  "text": "Hello everyone!"
-}
+```javascript
+socket.emit('chat_message', {
+  roomId: 'room-uuid',
+  text: 'Hello everyone!'
+})
 ```
-
-**offer, answer, ice_candidate**
-WebRTC signaling messages (automatically handled by the application)
 
 #### Server → Client
 
 **joined_room**
-```json
-{
-  "type": "joined_room",
-  "roomId": "room-uuid",
-  "userId": "user-uuid",
-  "peerId": "peer-uuid",
-  "users": [...]
-}
+```javascript
+socket.on('joined_room', (data) => {
+  // data: { roomId, userId, peerId, users }
+})
 ```
 
 **user_joined**
-```json
-{
-  "type": "user_joined",
-  "userId": "user-uuid",
-  "nickname": "John",
-  "peerId": "peer-uuid",
-  "users": [...]
-}
+```javascript
+socket.on('user_joined', (data) => {
+  // data: { userId, nickname, peerId, users }
+})
 ```
 
 **user_left**
-```json
-{
-  "type": "user_left",
-  "userId": "user-uuid",
-  "users": [...]
-}
+```javascript
+socket.on('user_left', (data) => {
+  // data: { userId, users }
+})
 ```
 
 **chat_message**
-```json
-{
-  "type": "chat_message",
-  "userId": "user-uuid",
-  "nickname": "John",
-  "text": "Hello everyone!",
-  "timestamp": "2024-01-01T12:00:00Z"
-}
+```javascript
+socket.on('chat_message', (data) => {
+  // data: { userId, nickname, text, timestamp }
+})
 ```
 
-## Technical Stack
+## 📖 API Documentation
 
-- **Frontend**: React 18, CSS3
-- **Backend**: Node.js, Express
-- **Real-time Communication**: WebSocket (ws), WebRTC
-- **Signaling**: Custom WebSocket-based signaling for WebRTC
-- **API**: REST API for room management
+Swagger/OpenAPI documentation is available at:
+```
+http://localhost:5000/apidocs
+```
 
-## Browser Support
-
-- Chrome/Chromium 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-## Configuration
+## ⚙️ Configuration
 
 ### Server Port
-Edit `server.js` to change the port:
-```javascript
-const PORT = process.env.PORT || 3001;
+Edit `app.py` to change the port:
+```python
+if __name__ == '__main__':
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
 ```
 
 ### STUN Servers
-Edit `client/src/utils/webrtc.js` to use different STUN servers:
+Edit `static/js/webrtc.js` to use different STUN servers:
 ```javascript
-const ICE_SERVERS = {
-  iceServers: [
+iceServers: [
     { urls: 'stun:your-stun-server.com:19302' },
     // ... more servers
-  ]
-};
+]
 ```
 
-## Known Limitations
+## 🎯 Known Limitations
 
-- Rooms are stored in memory and lost on server restart
-- No persistent storage of messages or room history
-- Audio/video quality depends on network conditions
-- Limited to peer-to-peer connections (no SFU/MCU)
+- Rooms stored in memory (lost on server restart)
+- No persistent message storage
+- P2P connections only (no media server)
+- Single worker process recommended for WebSocket
 
-## Future Enhancements
+## 🔮 Future Enhancements
 
-- [ ] Database integration for persistent storage
-- [ ] Recording functionality
+- [ ] Database integration (PostgreSQL/MongoDB)
+- [ ] Message persistence
 - [ ] Screen sharing
+- [ ] Recording functionality
+- [ ] User authentication
+- [ ] Room passwords
 - [ ] Mobile app
-- [ ] Encryption and security improvements
-- [ ] User profiles and customization
-- [ ] Room access control (passwords, invite links)
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### "Permission denied" for camera/microphone
-- Make sure your browser has permission to access camera and microphone
-- Check browser settings under Privacy & Security
+### Camera/Microphone permission denied
+- Check browser permissions
+- HTTPS required in production (WebRTC needs secure context)
 
-### No sound or video
-- Check your browser's microphone/camera permissions
-- Ensure you have a stable internet connection
-- Try reloading the page
+### No audio/video
+- Check browser console for errors
+- Verify stable internet connection
+- Try refreshing the page
 
 ### WebSocket connection fails
-- Check if the server is running
-- Verify the server URL matches your deployment
-- Check browser console for detailed error messages
+- Check if server is running
+- Verify firewall settings
+- Check CORS configuration
 
-## License
+## 📄 License
 
 MIT
 
-## Author
+## 👨‍💻 Author
 
 Created by Piotr2025
 
-## Support
+## 📞 Support
 
 For issues or questions, please open an issue on GitHub.
