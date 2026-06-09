@@ -1,3 +1,15 @@
+
+# 1. Zainstaluj zależności serwera
+npm install
+
+# 2. Zainstaluj zależności klienta
+cd client && npm install && cd ..
+
+# Terminal 1 - Serwer
+npm start
+
+# Terminal 2 - Klient
+npm run client
 # Voice Chat Rooms 🎤
 
 A real-time voice and text chat application built with React, Node.js, WebRTC, and WebSocket.
